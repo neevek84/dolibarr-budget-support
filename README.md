@@ -5,7 +5,7 @@ Ce dépôt est dédié au **support utilisateur** et au **suivi des bugs** pour 
 ## 📥 Téléchargement
 
 Le module est disponible sur le **Dolistore** :
-- 🛒 [Acheter sur Dolistore](https://www.dolistore.com/) *(lien à mettre à jour après publication)*
+- 🛒 [Acheter sur Dolistore](https://www.dolistore.com/product.php?id=2607)
 
 ## 📋 Fonctionnalités
 
@@ -18,8 +18,10 @@ Le module Budget permet une gestion budgétaire avancée dans Dolibarr :
 - ✅ **Évolution Forecast** - Historique des révisions via snapshots
 - ✅ **Reporting YTD** - Vue consolidée avec KPIs et graphiques
 - ✅ **Cronjob automatique** - Snapshots mensuels des forecasts
+- ✅ **Sélecteur €/K€/M€** - Affichage adapté selon l'échelle monétaire
+- ✅ **Clone budget** - Duplication rapide d'un budget existant
 
-## 🐛 Signaler un bug
+## �� Signaler un bug
 
 1. Vérifiez d'abord que le bug n'a pas déjà été signalé dans les [issues existantes](https://github.com/neevek84/dolibarr-budget-support/issues)
 2. [Créez une nouvelle issue](https://github.com/neevek84/dolibarr-budget-support/issues/new) avec :
@@ -37,6 +39,8 @@ Vous avez une idée d'amélioration ? [Créez une issue](https://github.com/neev
 
 | Version Module | Dolibarr | PHP |
 |----------------|----------|-----|
+| 1.1.0          | ≥ 19.0   | ≥ 7.1 |
+| 1.0.1          | ≥ 19.0   | ≥ 7.1 |
 | 1.0.0          | ≥ 19.0   | ≥ 7.1 |
 
 ## 📞 Contact
