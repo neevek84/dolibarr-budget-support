@@ -21,9 +21,18 @@ Le module Budget permet une gestion budgétaire avancée dans Dolibarr :
 - ✅ **Sélecteur €/K€/M€** - Affichage adapté selon l'échelle monétaire
 - ✅ **Clone budget** - Duplication rapide d'un budget existant
 
+## 📚 Documentation
+
+- 📖 **[FAQ - Questions fréquentes](FAQ.md)**
+- 🔧 **[Guide de dépannage](TROUBLESHOOTING.md)** - Solutions aux problèmes courants
+- ❗ **[Erreur "Unknown column 'fk_budget_main'"](TROUBLESHOOTING.md#-erreur--unknown-column-fk_budget_main-in-insert-into)** - Solution rapide
+
 ## �� Signaler un bug
 
-1. Vérifiez d'abord que le bug n'a pas déjà été signalé dans les [issues existantes](https://github.com/neevek84/dolibarr-budget-support/issues)
+1. Consultez d'abord :
+   - La [FAQ](FAQ.md) pour les questions courantes
+   - Le [guide de dépannage](TROUBLESHOOTING.md) pour les problèmes connus
+   - Les [issues existantes](https://github.com/neevek84/dolibarr-budget-support/issues)
 2. [Créez une nouvelle issue](https://github.com/neevek84/dolibarr-budget-support/issues/new) avec :
    - Votre version de Dolibarr
    - Votre version du module Budget
