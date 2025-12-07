@@ -27,7 +27,7 @@ Le module Budget permet une gestion budgétaire avancée dans Dolibarr :
 - 🔧 **[Guide de dépannage](TROUBLESHOOTING.md)** - Solutions aux problèmes courants
 - ❗ **[Erreur "Unknown column 'fk_budget_main'"](TROUBLESHOOTING.md#-erreur--unknown-column-fk_budget_main-in-insert-into)** - Solution rapide
 
-## �� Signaler un bug
+## 🐛 Signaler un bug
 
 1. Consultez d'abord :
    - La [FAQ](FAQ.md) pour les questions courantes

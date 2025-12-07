@@ -46,7 +46,10 @@ Si les solutions précédentes ne fonctionnent pas, la colonne manquante doit ê
 
 1. **Sauvegardez votre base de données**
    ```bash
+   # ATTENTION: N'incluez jamais de mot de passe dans la ligne de commande
+   # Utilisez --defaults-extra-file ou laissez -p sans valeur pour saisir le mot de passe de façon sécurisée
    mysqldump -u [utilisateur] -p [nom_base] > backup_$(date +%Y%m%d).sql
+   # Le système vous demandera le mot de passe de façon sécurisée
    ```
 
 2. **Identifiez la table concernée**

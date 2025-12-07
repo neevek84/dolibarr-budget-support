@@ -63,7 +63,10 @@ Voir le [guide de dépannage complet](TROUBLESHOOTING.md#-erreur--unknown-column
 
 **Méthode 1 : Sauvegarde de la base de données**
 ```bash
+# ATTENTION: N'incluez jamais de mot de passe dans la ligne de commande
+# Utilisez -p sans valeur pour saisir le mot de passe de façon sécurisée
 mysqldump -u [utilisateur] -p [nom_base] llx_budget* > backup_budgets.sql
+# Le système vous demandera le mot de passe de façon sécurisée
 ```
 
 **Méthode 2 : Export depuis Dolibarr**
