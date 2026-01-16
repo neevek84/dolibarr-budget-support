@@ -1,10 +1,12 @@
 # Module Budget pour Dolibarr ERP/CRM
 
-**Version 1.1.5** | **Compatible Dolibarr 19+** | **PHP 7.1+**
+**Version 1.1.7** | **Compatible Dolibarr 19+** | **PHP 7.1+**
 
-Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des revenus et dépenses avec comparaison budget/réalisé et prévisions (forecast).
+Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des revenus et dépenses avec comparaison budget/réalisé et prévisions (forecast). Avec regroupement hiérarchique par tiers/fournisseurs et interface responsive.
 
-## 🚀 Fonctionnalités
+📖 **[Guide Complet des Fonctionnalités](FEATURES.md)** - Documentation exhaustive de toutes les fonctionnalités et outils
+
+## 🚀 Fonctionnalités Principales
 
 ### Gestion des budgets
 - **Multi-budgets** : Créez plusieurs budgets par exercice fiscal
@@ -14,9 +16,14 @@ Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des rev
 
 ### Revenus et Dépenses
 - **Lignes budgétaires** par type (revenu/dépense)
+- **Regroupement hiérarchique** : 3 niveaux Type → Tiers/Fournisseur → Lignes (v1.1.7)
+- **Association tiers** : Liez une ligne de revenu à un client/prospect spécifique
+- **Association fournisseur** : Liez une ligne de dépense à un fournisseur spécifique (v1.1.7)
+- **Seuils "Autres"** : Regroupement automatique tiers/fournisseurs < 500€/110€ (v1.1.7)
 - **Lien comptable** : Association aux comptes du plan comptable (classe 6 et 7)
 - **Saisie mensuelle** des montants budgétés
 - **Copie rapide** : Dupliquer la première valeur sur toute l'année
+- **Interface responsive** : 4 vues optimisées (BUDGET, COMPARER, EVOLUTION x2) (v1.1.7)
 
 ### Comparaison Budget vs Réalisé
 - **Factures payées** : Extraction automatique depuis la comptabilité
