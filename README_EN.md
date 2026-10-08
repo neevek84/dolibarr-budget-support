@@ -1,8 +1,8 @@
 # Budget Module for Dolibarr ERP/CRM
 
-**Version 1.1.7** | **Compatible Dolibarr 19+** | **PHP 7.1+**
+**Version 1.3.1** | **Compatible Dolibarr 19+** | **PHP 7.1+**
 
-Advanced budget management module for Dolibarr enabling revenue and expense tracking with budget vs actual comparison and forecasting. Features hierarchical grouping by customers/suppliers and responsive interface.
+Advanced budget management module for Dolibarr enabling revenue and expense tracking with budget vs actual comparison and forecasting. Features hierarchical grouping by customers/suppliers, responsive interface, and PDF/CSV/Excel/XML exports.
 
 📖 **[Complete Features Guide](FEATURES.md)** - Comprehensive documentation of all features and tools
 
@@ -13,6 +13,10 @@ Advanced budget management module for Dolibarr enabling revenue and expense trac
 - **Multi-user**: Private or public shared budgets
 - **Flexible period**: Define custom budget periods (start/end month)
 - **Duplication**: Copy existing budget to create a new one
+- **Dynamic status**: Upcoming / In progress / Completed / Archived badge on the budget list (v1.1.9, 1.1.10)
+- **Archiving**: manually archive/unarchive budgets, hard purge via button, separate archived section in the list, archived budgets excluded from crons (v1.1.10)
+- **Variable period**: budgets shorter or longer than 12 months fully supported (v1.1.10)
+- **Future focus**: toggle "Full period / From current month onward" to concentrate on editable months (v1.1.10)
 
 ### Revenue and Expenses
 - **Budget lines** by type (revenue/expense)
@@ -25,11 +29,51 @@ Advanced budget management module for Dolibarr enabling revenue and expense trac
 - **Quick copy**: Duplicate first value across the year
 - **Responsive interface**: 4 optimized views (BUDGET, COMPARE, EVOLUTION x2) (v1.1.7)
 
+### Exports
+- **PDF export**: all views (Forecast, Budget & Baseline, Compare, YTD Report) (v1.1.8)
+- **CSV / Excel / XML export**: full data with active filters respected (v1.1.8)
+- **A4 format**: print-optimized, compatible with browser print → Save as PDF
+
 ### Budget vs Actual Comparison
 - **Paid invoices**: Automatic extraction from accounting
 - **Pending invoices**: Track unpaid invoices
 - **Signed orders**: Amounts to invoice (smoothed by delivery date)
 - **Opportunities**: Open quotes (by validity date)
+- **Miscellaneous payments**: credits as revenue, debits as expenses (v1.3.1)
+
+### Extended Expense Forecast (v1.2.0)
+Full coverage of outflows on the expense side, mirroring the Revenue section:
+- **Engaged**: validated supplier orders not yet invoiced, smoothed across the order duration (working days). Past delivery date → current month + red alert. No usable date → current month + warning badge.
+- **Recurring → Recurring invoices**: `facture_fourn_rec` templates projected on their occurrence months (no smoothing). Stops at `nb_gen_max`.
+- **Recurring → Loans**: future unpaid installments from `loan_schedule`, projected on their due date. Sub-section only enabled if the Loan module is active.
+- **Recurring → Social charges**: unpaid `chargesociales` projected on `date_ech`. Missing due date → current month + "to confirm" badge.
+- **Recurring → Salaries (projection)**: monthly average of the last 3 closed months per employee, projected forward. Automatically hidden when a real salary exists for that month.
+- **Unified override**: `llx_budget_expense_overrides` table discriminated by `source`. Pencil icon on each cell, modes auto/manual/excluded.
+- **Cash balance integration**: every flow is part of the projected Balance row.
+- **Extended real captures**: `getExpenseActual()` now includes salaries paid/unpaid, expense reports, social charges and loan payments (benefits budget_compare / budget_print / budget_forecast_evolution).
+- **Recurring → Supplier contracts** (v1.2.1): subscriptions managed via the Contract module (active lines, supplier thirdparty), line price treated as a recurring monthly amount.
+
+### Fixes v1.2.1
+- **Customer credit notes**: negative amounts (avoirs) were no longer displayed (nor summed in totals) because they were masked by a strict positive threshold — fixed.
+- **Unpaid loan installments**: a due-but-unpaid loan installment did not appear in any actual/realized total — fixed (`getExpenseActual()`).
+- **Budget cloning**: cloning produced misattached lines (wrong field names) — fixed and reworked, see below.
+
+### Budget cloning (v1.2.1)
+- **2-mode popup**: clicking the clone icon/button now offers a choice between "Resume from last budget" (copies budget + forecast as-is) and "Resume from actual figures" (rebuilds lines from the actual/realized figures — one line per accounting account for expenses, per thirdparty for revenue).
+- **Editable target period**, defaulting to the next fiscal year.
+- No duplicate-period guard: several budgets on the same fiscal year remain possible.
+
+### Project-linked Budgets (v1.3.0)
+- A budget can now be linked to a Dolibarr project, with real access restriction (creator, explicit share, `budget->readall` right, or public).
+- Share pre-filled from the linked project's team, freely editable.
+
+### Forecast Filter (v1.3.0)
+- Filter by thirdparty/supplier on the Forecast view, with option "without thirdparty"/"without supplier".
+
+### Miscellaneous Payments (v1.3.1)
+- **Miscellaneous payments** (Bank > Miscellaneous payments) are now taken into account: credits on the **Revenue** side, debits on the **Expenses** side, on their payment date.
+- Dedicated "Miscellaneous payments" block in the Forecast (grouped by accounting account, link to each payment), included in totals and balance.
+- Included in the actual figures of every view: comparison, print/PDF, CSV/Excel/XML exports, evolution, YTD, and "Resume from actual figures" cloning.
 
 ### Forecast
 - **Combined view**: Past (actual read-only) + Future (editable)

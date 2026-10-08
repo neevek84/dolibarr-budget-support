@@ -1,4 +1,4 @@
-# Guide Complet des Fonctionnalités - Module Budget v1.1.7
+# Guide Complet des Fonctionnalités - Module Budget v1.2.0
 
 **Dernière mise à jour** : 16 janvier 2026  
 **Module** : Budget pour Dolibarr ERP/CRM  
@@ -231,7 +231,79 @@ Total: 65 jours → 24 000,00€
 
 ---
 
-### 7. Baseline (Snapshot Forecast)
+### 7. Forecast Dépenses Élargi (v1.2.0 — Epic #36)
+
+**Objectif** : Couvrir TOUS les flux sortants côté forecast, en miroir de la section Revenus. Avant v1.2.0, seules les factures fournisseurs (réel) et le forecast manuel étaient pris en compte — l'engagé et la récurrence étaient des angles morts du pilotage de trésorerie.
+
+**Structure de la section Dépenses (post-v1.2.0)** :
+```
+[v] DÉPENSES — total
+    [>] Forecast (lignes manuelles)
+    [>] Engagé (P1) — commandes fournisseurs validées, lissées
+    [>] Récurrent (parent collapsible — P2-P5)
+        [>] Factures récurrentes (P2)
+        [>] Emprunts (P3, si module loan activé)
+        [>] Charges sociales (P4)
+        [>] Salaires (projection N-3 mois) (P5)
+    [>] Dépenses réalisées (factures payées + non payées)
+```
+
+**5 catégories de projection avec sources Dolibarr natives** :
+
+| Catégorie  | Méthode `BudgetReal`                            | Source SQL                                | Logique de placement                       |
+|------------|--------------------------------------------------|-------------------------------------------|--------------------------------------------|
+| Engagé     | `getEngagedSupplierOrdersDetails()`              | `commande_fournisseur` + `element_element`| Lissage jours ouvrés sur durée commande   |
+| Rec. invoice| `getRecurringSupplierInvoicesDetails()`         | `facture_fourn_rec`                       | Occurrences `date_when` + k * frequency   |
+| Emprunts   | `getRecurringLoansDetails()`                     | `loan_schedule` + `loan`                  | Sur `datep` de chaque échéance future     |
+| Charges    | `getRecurringChargesDetails()`                   | `chargesociales`                          | Sur `date_ech` (ou mois courant si vide)  |
+| Salaires   | `getRecurringSalariesDetails()`                  | `salary` (historique 3 derniers mois)     | Moyenne N-3 mois projetée                 |
+
+**Table d'override unifiée** :
+- `llx_budget_expense_overrides` discriminée par `source` ∈ {`engaged`, `rec_invoice`, `loan`, `charge`, `salary`}.
+- 3 modes : `auto` (calcul automatique), `manual` (montant ajusté), `excluded` (projection retirée pour ce mois).
+- Helper statique `BudgetExpenseOverride` : `fetch / apply / save / reset`.
+- UI : crayon bleu sur chaque cellule mois éditable des projections, modal mono-mois.
+
+**Règles métier validées** (Epic #36) :
+- ✅ Lissage commandes fourn = durée réelle complète, à cheval sur exercices.
+- ✅ Date dépassée → mois courant + pastille rouge ⚠️.
+- ✅ Aucune date utilisable → mois courant + pastille orange (point de vigilance).
+- ✅ Salaires : pattern N-3 mois est suffisant (pas de table de récurrence dédiée).
+- ✅ Anti-doublon salaires : réel masque la projection sur même `fk_user`/mois.
+- ✅ Module Loan optionnel via `isModEnabled('loan')`.
+- ✅ Charges sans `date_ech` → mois courant + tooltip « date à confirmer ».
+
+**Code** :
+- Classes : [class/budgetreal.class.php](class/budgetreal.class.php), [class/budgetexpenseoverride.class.php](class/budgetexpenseoverride.class.php) (helper statique)
+- Helpers de rendu : [lib/budget.lib.php](lib/budget.lib.php) — `budgetRenderExpenseProjectionBlock()` + `budgetAggregateExpenseProjection()`
+- SQL : `sql/llx_budget_expense_overrides.sql` (+ `.key.sql`) + `sql/upgrade_to_1.2.0.sql`
+- Action handler : `save_expense_override` dans [budget_forecast.php](budget_forecast.php)
+
+---
+
+### 7 bis. Paiements divers (v1.3.1)
+
+**Source** : `llx_payment_various` (Banque > Paiements divers) — via `BudgetReal::getVariousPaymentsDetails($month, $year, $sens)`.
+
+| Sens | Côté budget | Slotting | Regroupement |
+|------|-------------|----------|--------------|
+| `1` (crédit) | Revenus | `datep` (date de paiement) | Compte comptable (`accountancy_code`) |
+| `0` (débit)  | Dépenses | `datep` (date de paiement) | Compte comptable (`accountancy_code`) |
+
+- Libellé du compte résolu sur le plan comptable actif (`CHARTOFACCOUNTS`) ; paiements sans compte regroupés sous « Sans compte comptable ».
+- **Réalisé** : ajoutés au « payé » de `getRevenueActual()` / `getExpenseActual()` (+ clés `various`, `various_details`) → comparaison, impression, évolution, YTD et snapshots les intègrent sans code spécifique.
+- **Forecast** : bloc « Paiements divers » dans Revenus et dans Dépenses, rendu par `budgetRenderExpenseProjectionBlock()` (non éditable : ce sont des montants réels), inclus dans les totaux et le Solde.
+- **Exports** : lignes `revenue_various` / `expense_various` (CSV, Excel, XML `various_payments`).
+- **Clonage depuis le réalisé** : une ligne par compte comptable (revenu et dépense).
+
+**Choix de conception** :
+- ✅ Montant pris tel que saisi (un paiement divers n'a pas de ventilation HT/TVA).
+- ✅ Pas de tiers → hors filtre Forecast tiers/fournisseur (bandeau d'avertissement mis à jour).
+- ✅ Pas de projection : un paiement divers est toujours réel (réglé à la saisie).
+
+---
+
+### 8. Baseline (Snapshot Forecast)
 
 **Description** : Capture l'état du forecast à un instant T pour comparaison future
 

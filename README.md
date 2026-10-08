@@ -1,8 +1,8 @@
 # Module Budget pour Dolibarr ERP/CRM
 
-**Version 1.1.7** | **Compatible Dolibarr 19+** | **PHP 7.1+**
+**Version 1.3.1** | **Compatible Dolibarr 19+** | **PHP 7.1+**
 
-Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des revenus et dépenses avec comparaison budget/réalisé et prévisions (forecast). Avec regroupement hiérarchique par tiers/fournisseurs et interface responsive.
+Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des revenus et dépenses avec comparaison budget/réalisé et prévisions (forecast). Avec regroupement hiérarchique par tiers/fournisseurs, interface responsive et exports PDF/CSV/Excel/XML.
 
 📖 **[Guide Complet des Fonctionnalités](FEATURES.md)** - Documentation exhaustive de toutes les fonctionnalités et outils
 
@@ -13,6 +13,10 @@ Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des rev
 - **Multi-utilisateurs** : Budgets privés ou publics partagés
 - **Période flexible** : Définition libre de la période budgétaire (mois de début/fin)
 - **Duplication** : Copiez un budget existant pour créer un nouveau
+- **Statut dynamique** : Badge À venir / En cours / Terminé / Archivé sur la liste des budgets (v1.1.9, 1.1.10)
+- **Archivage** : archiver/désarchiver manuellement, purge définitive via bouton, vue liste séparée, budgets archivés exclus des crons (v1.1.10)
+- **Période variable** : budgets plus courts ou plus longs que 12 mois entièrement supportés (v1.1.10)
+- **Focus futur** : toggle « Période complète / À partir du mois en cours » pour se concentrer sur les mois éditables (v1.1.10)
 
 ### Revenus et Dépenses
 - **Lignes budgétaires** par type (revenu/dépense)
@@ -25,17 +29,57 @@ Module de gestion budgétaire avancée pour Dolibarr permettant le suivi des rev
 - **Copie rapide** : Dupliquer la première valeur sur toute l'année
 - **Interface responsive** : 4 vues optimisées (BUDGET, COMPARER, EVOLUTION x2) (v1.1.7)
 
+### Exports
+- **Export PDF** : toutes les vues (Forecast, Budget & Baseline, Comparer, Rapport YTD) (v1.1.8)
+- **Export CSV / Excel / XML** : données complètes avec respect des filtres actifs (v1.1.8)
+- **Format A4** : impression optimisée, compatible Cmd+P → Enregistrer en PDF
+
 ### Comparaison Budget vs Réalisé
 - **Factures payées** : Extraction automatique depuis la comptabilité
 - **Factures en attente** : Suivi des factures non payées
 - **Commandes signées** : Montants à facturer (lissés selon date de livraison)
 - **Opportunités** : Devis ouverts (selon date de validité)
+- **Paiements divers** : crédits en revenus, débits en dépenses (v1.3.1)
 
 ### Forecast (Prévisions)
 - **Vue combinée** : Passé (réalisé en lecture seule) + Futur (modifiable)
 - **Forecast par ligne** : Ajustez les prévisions mensuelles
 - **Lignes dédiées** : Ajoutez des lignes spécifiques au forecast
 - **Actualisation** : Mise à jour des prévisions selon la réalité
+
+### Forecast Dépenses élargi (v1.2.0)
+Couverture complète des flux sortants côté dépenses, en miroir de la section Revenus :
+- **Engagé** : commandes fournisseurs validées non encore facturées, lissées sur la durée de la commande (jours ouvrés). Date de livraison dépassée → mois courant + alerte rouge. Aucune date utilisable → mois courant + point de vigilance.
+- **Récurrent → Factures récurrentes** : projection des templates `facture_fourn_rec` sur leurs mois d'occurrence (pas de lissage). Arrêt automatique à `nb_gen_max`.
+- **Récurrent → Emprunts** : échéances futures non payées (`loan_schedule`), projetées sur leur date d'échéance. Sous-section activée seulement si le module Loan est actif.
+- **Récurrent → Charges sociales** : charges non payées projetées sur leur `date_ech`. Sans date d'échéance → mois courant + pastille « date à confirmer ».
+- **Récurrent → Salaires (projection)** : moyenne mensuelle des 3 derniers mois clos par salarié, projetée sur les mois futurs. Masque automatique si un salaire réel existe pour ce mois.
+- **Override unifié** : table `llx_budget_expense_overrides` discriminée par `source`. Crayon d'édition manuelle sur chaque cellule, modes auto/manual/excluded.
+- **Solde de trésorerie** intégré : tous les flux entrent dans le calcul du Balance projeté.
+- **Captures réelles étendues** : `getExpenseActual()` inclut désormais salaires payés/non payés, NDF, charges sociales et échéances de prêt (bénéficie à budget_compare / budget_print / budget_forecast_evolution).
+- **Récurrent → Contrats fournisseurs** (v1.2.1) : abonnements gérés via le module Contrat (lignes actives, tiers fournisseur), prix de ligne traité comme montant mensuel récurrent.
+
+### Corrections v1.2.1
+- **Avoirs clients** : les montants négatifs (avoirs) n'étaient plus affichés (ni dans les totaux) car masqués par un seuil positif strict — corrigé.
+- **Emprunts non payés** : une échéance de prêt due mais non réglée n'apparaissait dans aucun total réalisé — corrigé (`getExpenseActual()`).
+- **Clonage de budget** : le clonage produisait des lignes mal rattachées (mauvais noms de champs) — corrigé et refondu, voir ci-dessous.
+
+### Clonage de budget (v1.2.1)
+- **Popup à 2 modes** : au clic sur l'icône/bouton clone, choix entre « Reprendre le dernier budget » (copie budget + forecast à l'identique) et « Reprendre les données réalisées » (reconstruit les lignes depuis le réalisé constaté, par compte comptable côté dépenses et par tiers côté revenus).
+- **Période cible éditable**, pré-remplie sur l'exercice suivant par défaut.
+- Pas de garde-fou anti-doublon : plusieurs budgets sur le même exercice restent possibles.
+
+### Budgets liés à un projet (v1.3.0)
+- Un budget peut être rattaché à un projet Dolibarr, avec restriction d'accès réelle (créateur, partage explicite, droit `budget->readall`, ou public).
+- Partage pré-rempli depuis l'équipe du projet lié, modifiable librement.
+
+### Filtre Forecast (v1.3.0)
+- Filtre par tiers/fournisseur sur la vue Forecast, avec option "sans tiers"/"sans fournisseur".
+
+### Paiements divers (v1.3.1)
+- Les **paiements divers** (Banque > Paiements divers) sont pris en compte : crédits côté **Revenus**, débits côté **Dépenses**, à leur date de paiement.
+- Bloc « Paiements divers » dédié dans le Forecast (regroupé par compte comptable, lien vers chaque paiement), intégré aux totaux et au solde.
+- Inclus dans le réalisé de toutes les vues : comparaison, impression/PDF, exports CSV/Excel/XML, évolution, YTD, et clonage « Reprendre les données réalisées ».
 
 ### Suivi YTD (Year To Date)
 - **Graphique d'évolution** : Revenus budgétés vs réalisés
